@@ -99,6 +99,12 @@ export const blocks = {
         visible: true,
         material: new THREE.MeshLambertMaterial({ map: textures.sand })
     },
+    cloud: {
+        id: 9,
+        name: "cloud",
+        visible: true,
+        material: new THREE.MeshBasicMaterial({ color: 0xF0F0F0 })
+    },
     snow: {
         id: 10,
         name: "snow",

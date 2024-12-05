@@ -4,6 +4,8 @@ import { SimplexNoise } from "three/examples/jsm/math/SimplexNoise.js";
 import { RNG } from "./rng";
 import { blocks, resources } from "./blocks";
 
+const geometry = new THREE.BoxGeometry();
+
 export class WorldChunk extends THREE.Group {
     /**
      * @type {{
@@ -31,6 +33,9 @@ export class WorldChunk extends THREE.Group {
 
         this.initializeTerrain();
         this.generateTerrain(rng);
+        this.generateClouds(rng);
+        this.loadPlayerChanges();
+        this.generateMeshes();
 
         this.loaded = true;
 
@@ -229,6 +234,113 @@ export class WorldChunk extends THREE.Group {
     }
 
     /**
+     * Creates happy little clouds
+     * @param {RNG} rng
+     */
+    generateClouds(rng) {
+        const simplex = new SimplexNoise(rng);
+
+        for (let x = 0; x < this.size.width; x++) {
+            for (let z = 0; z < this.size.width; z++) {
+                const value = (simplex.noise(
+                    (this.position.x + x) / this.params.clouds.scale,
+                    (this.position.z + z) / this.params.clouds.scale
+                ) + 1) * 0.5;
+
+                if (value < this.params.clouds.density) {
+                    this.setBlockId(x, this.size.height - 1, z, blocks.cloud.id);
+                }
+            }
+        }
+    }
+
+    /**
+     * Pulls any changes from the data store and applies them to the data model
+     */
+    loadPlayerChanges() {
+        for (let x = 0; x < this.size.width; x++) {
+            for (let y = 0; y < this.size.height; y++) {
+                for (let z = 0; z < this.size.width; z++) {
+                    if (this.dataStore.contains(this.position.x, this.position.z, x, y, z)) {
+                        const blockId = this.dataStore.get(this.position.x, this.position.z, x, y, z);
+                        this.setBlockId(x, y, z, blockId);
+                    }
+                }
+            }
+        }
+    }
+
+    generateWater() {
+        const material = new THREE.MeshLambertMaterial({
+            color: 0x9090E0,
+            transparent: true,
+            opacity: 0.5,
+            side: THREE.DoubleSide
+        });
+
+        const waterMesh = new THREE.Mesh(new THREE.PlaneGeometry(), material);
+        waterMesh.rotateX(-Math.PI / 2.0);
+        waterMesh.position.set(
+            this.size.width / 2,
+            this.params.terrain.waterOffset + 0.4,
+            this.size.width / 2
+        );
+        waterMesh.scale.set(this.size.width, this.size.width, 1);
+        waterMesh.layers.set(1);
+
+        this.add(waterMesh);
+    }
+
+    /**
+     * Generates the 3D representation of the world from the world data
+     */
+    generateMeshes() {
+        this.clear();
+
+        this.generateWater();
+
+        const maxCount = this.size.width * this.size.width * this.size.height;
+
+        // Creating a lookup table where the key is the block id
+        const meshes = {};
+
+        Object.values(blocks)
+            .filter(blockType => blockType.id !== blocks.empty.id)
+            .forEach(blockType => {
+                const mesh = new THREE.InstancedMesh(geometry, blockType.material, maxCount);
+                mesh.name = blockType.id;
+                mesh.count = 0;
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+                meshes[blockType.id] = mesh;
+            });
+        
+        const matrix = new THREE.Matrix4();
+
+        for (let x = 0; x < this.size.width; x++) {
+            for (let y = 0; y < this.size.height; y++) {
+                for (let z = 0; z < this.size.width; z++) {
+                    const blockId = this.getBlock(x, y, z).id;
+
+                    if (blockId === blocks.empty.id) continue;
+
+                    const mesh = meshes[blockId];
+                    const instanceId = mesh.count;
+
+                    if (!this.isBLockObscured(x, y, z)) {
+                        matrix.setPosition(x, y, z);
+                        mesh.setMatrixAt(instanceId, matrix);
+                        this.setBlockInstanceId(x, y, z, instanceId);
+                        mesh.count++;
+                    }
+                }
+            }
+        }
+
+        this.add(...Object.values(meshes));
+    }
+
+    /**
      * Gets the block data at (x, y, z)
      * @param {number} x
      * @param {number} y
@@ -257,6 +369,19 @@ export class WorldChunk extends THREE.Group {
     }
 
     /**
+     * Sets the block instance id for the block at (x, y, z)
+     * @param {number} x
+     * @param {number} y
+     * @param {number} z
+     * @param {number} instanceId
+     */
+    setBlockInstanceId(x, y, z, instanceId) {
+        if (this.inBounds(x, y, z)) {
+            this.data[x][y][z].instanceId = instanceId;
+        }
+    }
+
+    /**
      * Checks if the (x, y, z) coordinates are within bounds
      * @param {number} x
      * @param {number} y
@@ -270,6 +395,34 @@ export class WorldChunk extends THREE.Group {
                 return true;
             } else {
                 return false;
+            }
+    }
+
+    /**
+     * Returns true if this block is completely hidden by other blocks
+     * @param {number} x
+     * @param {number} y
+     * @param {number} z
+     * @returns {boolean}
+     */
+    isBLockObscured(x, y, z) {
+        const up = this.getBlock(x, y + 1, z)?.id ?? blocks.empty.id;
+        const down = this.getBlock(x, y - 1, z)?.id ?? blocks.empty.id;
+        const left = this.getBlock(x + 1, y, z)?.id ?? blocks.empty.id;
+        const right = this.getBlock(x - 1, y, z)?.id ?? blocks.empty.id;
+        const forward = this.getBlock(x, y, z + 1)?.id ?? blocks.empty.id;
+        const back = this.getBlock(x, y, z - 1)?.id ?? blocks.empty.id;
+
+        // If any of the block's sides is exposed, it is not obscured
+        if (up === blocks.empty.id ||
+            down === blocks.empty.id ||
+            left === blocks.empty.id ||
+            right === blocks.empty.id ||
+            forward === blocks.empty.id ||
+            back === blocks.empty.id) {
+                return false;
+            } else {
+                return true;
             }
     }
 
