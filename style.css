@@ -24,6 +24,23 @@ h1 {
     margin: 8px;
 }
 
+#overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background-color: #00000080;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    font-size: 2em;
+    color: white;
+    text-align: center;
+}
+
 #status {
     position: fixed;
     bottom: 8px;

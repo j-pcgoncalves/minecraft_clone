@@ -3,6 +3,7 @@ import Stats from "three/examples/jsm/libs/stats.module.js";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
 import { World } from "./world";
+import { Player } from "./player";
 
 // UI Setup
 const stats = new Stats();
@@ -25,6 +26,8 @@ const world = new World();
 world.generate();
 scene.add(world);
 
+const player = new Player(scene, world);
+
 // Camera setup
 const orbitCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 orbitCamera.position.set(24, 24, 24);
@@ -41,6 +44,20 @@ function setupLights() {
     sun.castShadow = true;
 
     // Set the size of the sun's shadow box
+    sun.shadow.camera.left = -40;
+    sun.shadow.camera.right = 40;
+    sun.shadow.camera.top = 40;
+    sun.shadow.camera.bottom = -40;
+    sun.shadow.camera.near = 0.1;
+    sun.shadow.camera.far = 200;
+    sun.shadow.bias = -0.0001;
+    sun.shadow.mapSize = new THREE.Vector2(2048, 2048);
+    scene.add(sun);
+    scene.add(sun.target);
+
+    const ambient = new THREE.AmbientLight();
+    ambient.intensity = 0.2;
+    scene.add(ambient);
 }
 
 // Render loop
@@ -56,6 +73,14 @@ function animate() {
     
     previousTime = currentTime;
 }
+
+window.addEventListener("resize", () => {
+    // Resize camera aspect ratio and renderer size to the new window size
+    orbitCamera.aspect = window.innerWidth / window.innerHeight;
+    orbitCamera.updateProjectionMatrix();
+
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
 
 setupLights();
 animate();
