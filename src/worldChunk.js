@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { SimplexNoise } from "three/examples/jsm/math/SimplexNoise.js";
 
 import { RNG } from "./rng";
-import { blocks } from "./blocks";
+import { blocks, resources } from "./blocks";
 
 export class WorldChunk extends THREE.Group {
     /**
@@ -138,10 +138,35 @@ export class WorldChunk extends THREE.Group {
                         if (rng.random() < this.params.trees.frequency) {
                             this.generateTree(rng, biome, x, height + 1, z);
                         }
+                    } else if (y < height && this.getBlock(x, y, z).id === blocks.empty.id) {
+                        this.generateResourceIfNeeded(simplex, x, y, z);
                     }
                 }
             }
         }
+    }
+
+    /**
+     * Determines if a resource block should be generated at (x, y, z)
+     * @param {SimplexNoise} simplex
+     * @param {number} x
+     * @param {number} y
+     * @param {number} z
+     */
+    generateResourceIfNeeded(simplex, x, y, z) {
+        this.setBlockId(x, y, z, blocks.dirt.id);
+
+        resources.forEach(resource => {
+            const value = simplex.noise3d(
+                (this.position.x + x) / resource.scale.x,
+                (this.position.y + y) / resource.scale.y,
+                (this.position.z + z) / resource.scale.z,
+            );
+
+            if (value > resource.scarcity) {
+                this.setBlockId(x, y, z, resource.id);
+            }
+        });
     }
 
     /**
@@ -167,6 +192,55 @@ export class WorldChunk extends THREE.Group {
         }
 
         // Generate canopy centered on the top of the tree
+        if (biome === "Temperate" || biome === "Jungle") {
+            this.generateTreeCanopy(biome, x, y + h, z, rng);
+        }
+    }
+
+    generateTreeCanopy(biome, centerX, centerY, centerZ, rng) {
+        const minR = this.params.trees.canopy.minRadius;
+        const maxR = this.params.trees.canopy.maxRadius;
+        const r = Math.round(minR + (maxR - minR) * rng.random());
+
+        for (let x = -r; x <= r; x++) {
+            for (let y = -r; y <= r; y++) {
+                for (let z = -r; z <= r; z++) {
+                    const n = rng.random();
+
+                    // Make sure the block is within the canopy radius
+                    if (x * x + y * y + z * z > r * r) continue;
+
+                    // Don't overwrite an existing block
+                    const block = this.getBlock(centerX + x, centerY + y, centerZ + z);
+
+                    if (block && block.id !== blocks.empty.id) continue;
+
+                    // Fill in the tree canopy with leaves based on the density parameter
+                    if (n < this.params.trees.canopy.density) {
+                        if (biome === "Temperate") {
+                            this.setBlockId(centerX + x, centerY + y, centerZ + z, blocks.leaves.id);
+                        } else if (biome === "Jungle") {
+                            this.setBlockId(centerX + x, centerY + y, centerZ + z, blocks.jungleLeaves.id);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Gets the block data at (x, y, z)
+     * @param {number} x
+     * @param {number} y
+     * @param {number} z
+     * @returns {{id: number, instanceId: number}}
+     */
+    getBlock(x, y, z) {
+        if (this.inBounds(x, y, z)) {
+            return this.data[x][y][z];
+        } else {
+            return null;
+        }
     }
 
     /**
