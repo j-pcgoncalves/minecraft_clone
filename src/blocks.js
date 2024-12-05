@@ -63,14 +63,14 @@ export const blocks = {
     coalOre: {
         id: 4,
         name: "coal_ore",
-        material: new THREE.MeshLambertMateria({ map: textures.coalOre }),
+        material: new THREE.MeshLambertMaterial({ map: textures.coalOre }),
         scale: { x: 20, y: 20, z: 20 },
         scarcity: 0.8
     },
     ironOre: {
         id: 5,
         name: "iron_ore",
-        material: new THREE.MeshLambertMateria({ map: textures.ironOre }),
+        material: new THREE.MeshLambertMaterial({ map: textures.ironOre }),
         scale: { x: 40, y: 40, z: 40 },
         scarcity: 0.9
     },
