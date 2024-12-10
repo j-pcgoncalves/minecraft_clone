@@ -13,6 +13,11 @@ export class DataStore {
         return blockId;
     }
 
+    set(chunkX, chunkZ, blockX, blockY, blockZ, blockId) {
+        const key = this.#getKey(chunkX, chunkZ, blockX, blockY, blockZ);
+        this.data[key] = blockId;
+    };
+
     #getKey(chunkX, chunkZ, blockX, blockY, blockZ) {
         return `${chunkX},${chunkZ},${blockX},${blockY},${blockZ}`;
     }
