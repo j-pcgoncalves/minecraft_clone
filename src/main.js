@@ -78,6 +78,7 @@ function animate() {
     // Only update physics when player controls are locked
     if (player.controls.isLocked) {
         physics.update(dt, player, world);
+        player.update(world);
     };
 
     renderer.render(scene, orbitCamera);

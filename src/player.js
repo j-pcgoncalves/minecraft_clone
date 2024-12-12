@@ -2,6 +2,9 @@ import * as THREE from "three";
 import { PointerLockControls } from "three/addons/controls/PointerLockControls.js";
 
 import { blocks } from "./blocks";
+import { World } from "./world";
+
+const CENTER_SCREEN = new THREE.Vector2();
 
 export class Player {
     height = 1.75;
@@ -95,6 +98,57 @@ export class Player {
     }
 
     /**
+     * Updates the state of the player
+     * @param {World} world
+     */
+    update(world) {
+        this.updateBoundsHelper();
+        this.updateRaycaster(world);
+
+        if (this.tool.animate) {
+            this.updateToolAnimation();
+        };
+    }
+
+    /**
+     * Updates the raycaster used for block selection
+     * @param {World} world
+     */
+    updateRaycaster(world) {
+        this.raycaster.setFromCamera(CENTER_SCREEN, this.camera);
+        const intersections = this.raycaster.intersectObject(world, true);
+
+        if (intersections.length > 0) {
+            const intersection = intersections[0];
+
+            // Get the chunk associated with the selected block
+            const chunk = intersection.object.parent;
+
+            // Get the transformation matrix for the selected block
+            const blockMatrix = new THREE.Matrix4();
+            intersection.object.getMatrixAt(intersection.instanceId, blockMatrix);
+
+            // Set the selected coordinates to the origin of the chunk,
+            // then apply the transformation matrix of the block to get
+            // the block coordinates
+            this.selectedCoords = chunk.position.clone();
+            this.selectedCoords.applyMatrix4(blockMatrix);
+
+            if (this.activeBlockId !== blocks.empty.id) {
+                // If we are adding a block, move it 1 block over in the direction
+                // of where the ray intersected the cube
+                this.selectedCoords.add(intersection.normal);
+            };
+
+            this.selectionHelper.position.copy(this.selectedCoords);
+            this.selectionHelper.visible = true;
+        } else {
+            this.selectedCoords = null;
+            this.selectionHelper.visible = false;
+        };
+    }
+
+    /**
      * Updates the state of the player based on the current user inputs
      * @param {number} dt
      */
@@ -116,6 +170,14 @@ export class Player {
     }
 
     /**
+     * Updates the position of the player's bounding cylinder helper
+     */
+    updateBoundsHelper() {
+        this.boundsHelper.position.copy(this.camera.position);
+        this.boundsHelper.position.y -= this.height / 2;
+    }
+
+    /**
      * Set the tool object the player is holding
      * @param {THREE.Mesh} tool
      */
@@ -128,6 +190,16 @@ export class Player {
         this.tool.container.scale.set(0.5, 0.5, 0.5);
         this.tool.container.rotation.z = Math.PI / 2;
         this.tool.container.rotation.y = Math.PI + 0.2;
+    }
+
+    /**
+     * Animates the tool rotation
+     */
+    updateToolAnimation() {
+        if (this.tool.container.children.length > 0) {
+            const t = this.tool.animationSpeed * (performance.now() - this.tool.animationStart);
+            this.tool.container.children[0].rotation.y = 0.5 * Math.sin(t);
+        };
     }
 
     /**
