@@ -94,6 +94,21 @@ export class Player {
     }
 
     /**
+     * Set the tool object the player is holding
+     * @param {THREE.Mesh} tool
+     */
+    setTool(tool) {
+        this.tool.container.clear();
+        this.tool.container.add(tool);
+        this.tool.container.receiveShadow = true;
+        this.tool.container.castShadow = true;
+        this.tool.container.position.set(0.6, -0.3, -0.5);
+        this.tool.container.scale.set(0.5, 0.5, 0.5);
+        this.tool.container.rotation.z = Math.PI / 2;
+        this.tool.container.rotation.y = Math.PI + 0.2;
+    }
+
+    /**
      * Returns the current world position of the player
      * @returns {THREE.Vector3}
      */

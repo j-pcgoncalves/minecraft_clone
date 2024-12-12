@@ -5,6 +5,7 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { World } from "./world";
 import { Player } from "./player";
 import { Physics } from "./physics";
+import { ModelLoader } from "./modelLoader";
 
 // UI Setup
 const stats = new Stats();
@@ -37,6 +38,10 @@ orbitCamera.layers.enable(1);
 
 const controls = new OrbitControls(orbitCamera, renderer.domElement);
 controls.update();
+
+const modelLoader = new ModelLoader((models) => {
+    player.setTool(models.pickaxe);
+});
 
 let sun;
 function setupLights() {
