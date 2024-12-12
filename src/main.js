@@ -75,6 +75,11 @@ function animate() {
     const currentTime = performance.now();
     const dt = (currentTime - previousTime) / 1000;
 
+    // Only update physics when player controls are locked
+    if (player.controls.isLocked) {
+        physics.update(dt, player, world);
+    };
+
     renderer.render(scene, orbitCamera);
     stats.update();
     

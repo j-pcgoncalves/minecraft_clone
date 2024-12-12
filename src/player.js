@@ -14,6 +14,7 @@ export class Player {
 
     input = new THREE.Vector3();
     velocity = new THREE.Vector3();
+    #worldVelocity = new THREE.Vector3();
 
     camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 100);
     cameraHelper = new THREE.CameraHelper(this.camera);
@@ -94,6 +95,27 @@ export class Player {
     }
 
     /**
+     * Updates the state of the player based on the current user inputs
+     * @param {number} dt
+     */
+    applyInputs(dt) {
+        if (this.controls.isLocked === true) {
+            this.velocity.x = this.input.x * (this.sprinting ? 1.5 : 1);
+            this.velocity.z = this.input.z * (this.sprinting ? 1.5 : 1);
+            this.controls.moveRight(this.velocity.x * dt);
+            this.controls.moveForward(this.velocity.z * dt);
+            this.position.y += this.velocity.y * dt;
+
+            if (this.position.y < 0) {
+                this.position.y = 0;
+                this.velocity.y = 0;
+            };
+        };
+
+        document.getElementById("info-player-position").innerHTML = this.toString();
+    }
+
+    /**
      * Set the tool object the player is holding
      * @param {THREE.Mesh} tool
      */
@@ -114,6 +136,15 @@ export class Player {
      */
     get position() {
         return this.camera.position;
+    }
+
+    /**
+     * Applies a change in velocity `dv` that is specified in the world frame
+     * @param {THREE.Vector3} dv
+     */
+    applyWorldDeltaVelocity(dv) {
+        dv.applyEuler(new THREE.Euler(0, -this.camera.rotation.y, 0));
+        this.velocity.add(dv);
     }
 
     /**
@@ -242,5 +273,18 @@ export class Player {
                 };
             }
         };
+    }
+
+    /**
+     * Returns player position in a readable string form
+     * @return {string}
+     */
+    toString() {
+        let str = "";
+        str += `X: ${this.position.x.toFixed(3)}`;
+        str += `Y: ${this.position.y.toFixed(3)}`;
+        str += `Z: ${this.position.z.toFixed(3)}`;
+
+        return str;
     }
 }
