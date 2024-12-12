@@ -81,7 +81,15 @@ function animate() {
         player.update(world);
         world.update(player);
 
-        
+        // Position the sun relative to the player. Need to adjust both the
+        // position and target of the sun to keep the same sun angle
+        sun.position.copy(player.camera.position);
+        sun.position.sub(new THREE.Vector3(-50, -50, -50));
+        sun.target.position.copy(player.camera.position);
+
+        // Update position of the orbit camera to track player
+        orbitCamera.position.copy(player.position).add(new THREE.Vector3(16, 16, 16));
+        controls.target.copy(player.position);
     };
 
     renderer.render(scene, player.controls.isLocked ? player.camera : orbitCamera);
@@ -94,6 +102,8 @@ window.addEventListener("resize", () => {
     // Resize camera aspect ratio and renderer size to the new window size
     orbitCamera.aspect = window.innerWidth / window.innerHeight;
     orbitCamera.updateProjectionMatrix();
+    player.camera.aspect = window.innerWidth / window.innerHeight;
+    player.camera.updateProjectionMatrix();
 
     renderer.setSize(window.innerWidth, window.innerHeight);
 });
