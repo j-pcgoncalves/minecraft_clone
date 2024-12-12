@@ -17,7 +17,7 @@ export class Player {
 
     input = new THREE.Vector3();
     velocity = new THREE.Vector3();
-    worldVelocity = new THREE.Vector3();
+    #worldVelocity = new THREE.Vector3();
 
     camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 100);
     cameraHelper = new THREE.CameraHelper(this.camera);
@@ -208,6 +208,16 @@ export class Player {
      */
     get position() {
         return this.camera.position;
+    }
+
+    /**
+     * Returns the velocity of the player in world coordinates
+     * @returns {THREE.Vector3}
+     */
+    get worldVelocity() {
+        this.#worldVelocity.copy(this.velocity);
+        this.#worldVelocity.applyEuler(new THREE.Euler(0, this.camera.rotation.y, 0));
+        return this.#worldVelocity;
     }
 
     /**
