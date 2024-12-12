@@ -4,6 +4,7 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
 import { World } from "./world";
 import { Player } from "./player";
+import { Physics } from "./physics";
 
 // UI Setup
 const stats = new Stats();
@@ -27,6 +28,7 @@ world.generate();
 scene.add(world);
 
 const player = new Player(scene, world);
+const physics = new Physics(scene);
 
 // Camera setup
 const orbitCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
