@@ -6,6 +6,7 @@ import { World } from "./world";
 import { Player } from "./player";
 import { Physics } from "./physics";
 import { ModelLoader } from "./modelLoader";
+import { setupUI } from "./ui";
 
 // UI Setup
 const stats = new Stats();
@@ -108,5 +109,6 @@ window.addEventListener("resize", () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
+setupUI(world, player, physics, scene);
 setupLights();
 animate();
