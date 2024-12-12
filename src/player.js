@@ -162,7 +162,7 @@ export class Player {
                 this.controls.unlock();
                 break;
         };
-    };
+    }
 
     /**
      * Event handler for "keyup" event
@@ -191,9 +191,8 @@ export class Player {
 
     /**
      * Event handler for "mousedown" event
-     * @param {MouseEvent} event
      */
-    onMouseDown(event) {
+    onMouseDown() {
         if (this.controls.isLocked) {
             // Is a block selected?
             if (this.selectedCoords) {
@@ -228,5 +227,5 @@ export class Player {
                 };
             }
         };
-    };
+    }
 }

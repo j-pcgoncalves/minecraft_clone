@@ -167,7 +167,7 @@ export class World extends THREE.Group {
             chunk: chunkCoords,
             block: blockCoords
         };
-    };
+    }
 
     /**
      * Returns the WorldChunk object at the specified coordinates
@@ -180,7 +180,7 @@ export class World extends THREE.Group {
             chunk.userData.x === chunkX &&
             chunk.userData.z === chunkZ
         ));
-    };
+    }
 
     disposeChunks() {
         this.traverse((chunk) => {
@@ -219,7 +219,7 @@ export class World extends THREE.Group {
             this.hideBlock(x, y, z - 1);
             this.hideBlock(x, y, z + 1);
         };
-    };
+    }
 
     /**
      * Removes the block at (x, y, z) and sets it to empty
@@ -249,7 +249,7 @@ export class World extends THREE.Group {
             this.revealBlock(x, y, z - 1);
             this.revealBlock(x, y, z + 1);
         };
-    };
+    }
 
     /**
      * Reveals the block at (x, y, z) by adding a new mesh instance
@@ -268,7 +268,7 @@ export class World extends THREE.Group {
                 coords.block.z
             );
         };
-    };
+    }
 
     /**
      * Hides the block at (x, y, z) by removing the mesh instance
@@ -287,5 +287,5 @@ export class World extends THREE.Group {
                 coords.block.z
             );
         };
-    };
+    }
 }

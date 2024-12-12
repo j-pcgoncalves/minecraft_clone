@@ -368,7 +368,7 @@ export class WorldChunk extends THREE.Group {
             this.addBlockInstance(x, y, z);
             this.dataStore.set(this.position.x, this.position.z, x, y, z, blockId);
         };
-    };
+    }
 
     /**
      * Removes the block at (x, y, z)
@@ -382,7 +382,7 @@ export class WorldChunk extends THREE.Group {
         if (block && block.id !== blocks.empty.id) {
             this.deleteBlockInstance(x, y, z);
         };
-    };
+    }
 
     /**
      * Removes the mesh instance associated with `block` by swapping it
@@ -423,7 +423,7 @@ export class WorldChunk extends THREE.Group {
 
         // Remove the instance associated with the block and update the data model
         this.setBlockInstanceId(x, y, z, null);
-    };
+    }
 
     /**
      * Create a new instance for the block at (x, y, z)
@@ -448,7 +448,7 @@ export class WorldChunk extends THREE.Group {
             mesh.instanceMatrix.needsUpdate = true;
             mesh.computeBoundingSphere();
         };
-    };
+    }
 
     /**
      * Sets the block id for the block at (x, y, z)
