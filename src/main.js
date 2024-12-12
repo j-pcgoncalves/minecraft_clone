@@ -79,9 +79,12 @@ function animate() {
     if (player.controls.isLocked) {
         physics.update(dt, player, world);
         player.update(world);
+        world.update(player);
+
+        
     };
 
-    renderer.render(scene, orbitCamera);
+    renderer.render(scene, player.controls.isLocked ? player.camera : orbitCamera);
     stats.update();
     
     previousTime = currentTime;

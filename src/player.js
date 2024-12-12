@@ -17,7 +17,7 @@ export class Player {
 
     input = new THREE.Vector3();
     velocity = new THREE.Vector3();
-    #worldVelocity = new THREE.Vector3();
+    worldVelocity = new THREE.Vector3();
 
     camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 100);
     cameraHelper = new THREE.CameraHelper(this.camera);
